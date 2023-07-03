@@ -1,0 +1,29 @@
+name: release
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  release_assets:
+    name: release_assets
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: apt dependencies
+        run: |
+          sudo apt-get install -y automake autoconf libtool pkg-config
+          zlib1g-dev liblzo2-dev liblzma-dev liblz4-dev libzstd-dev fio
+      - name: build
+        run: |
+          ./autogen.sh
+          ./configure
+          make dist V=1
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.tar.gz
